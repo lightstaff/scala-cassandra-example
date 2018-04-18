@@ -10,6 +10,7 @@ import com.outworkers.phantom.connectors.{CassandraConnection, ContactPoint}
 import com.outworkers.phantom.dsl._
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, WordSpecLike}
 
 class MessageServiceSpec
@@ -19,9 +20,13 @@ class MessageServiceSpec
     with ScalaFutures
     with OptionValues {
 
+  // デフォルトだとタイムアウトする可能性あり
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = Span(5, Seconds), interval = Span(200, Millis))
+
   object TestConnector {
     private val config: Config = ConfigFactory.parseString("""cassandra {
-        |  host: "localhost"
+        |  host: "192.168.0.71"
         |  port: 9042
         |  keyspace: "scala_cassandra_example"
         |}
@@ -84,7 +89,7 @@ class MessageServiceSpec
     "batch store and find by partition" in {
       val partition: (String, String) = ("B", "1")
       val messages = Seq
-        .range(0, 100)
+        .range(0, 1000)
         .map(
           i =>
             Message(UUID.randomUUID(),
@@ -97,7 +102,7 @@ class MessageServiceSpec
       } yield res
 
       whenReady(q) { res =>
-        res.size shouldBe 100
+        res.size shouldBe 1000
       }
     }
   }

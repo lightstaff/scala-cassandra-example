@@ -58,6 +58,11 @@ class MessageServiceSpec
     ()
   }
 
+  override def afterAll(): Unit = {
+    messageService.database.drop()
+    ()
+  }
+
   "message service" should {
 
     "store and find by id" in {

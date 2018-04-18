@@ -8,7 +8,7 @@ import scala.language.reflectiveCalls
 import com.datastax.driver.core.SocketOptions
 import com.outworkers.phantom.connectors.{CassandraConnection, ContactPoint}
 import com.outworkers.phantom.dsl._
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, WordSpecLike}
 
@@ -20,8 +20,12 @@ class MessageServiceSpec
     with OptionValues {
 
   object TestConnector {
-    private val config = ConfigFactory.load()
-    config.checkValid(ConfigFactory.defaultReference(), "cassandra")
+    private val config: Config = ConfigFactory.parseString("""cassandra {
+        |  host: "localhost"
+        |  port: 9042
+        |  keyspace: "scala_cassandra_example"
+        |}
+      """.stripMargin)
 
     val connection: CassandraConnection =
       ContactPoint(config.getString("cassandra.host"), config.getInt("cassandra.port"))
